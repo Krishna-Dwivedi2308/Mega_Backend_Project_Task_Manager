@@ -1,0 +1,38 @@
+# Ignore artifacts:
+build
+dist
+coverage
+node_modules
+
+# Ignore config files:
+*.config.js
+*.config.cjs
+
+# Ignore lock files:
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore version control folders:
+.git
+.hg
+.svn
+
+# Ignore logs:
+*.log
+
+# Ignore environment files:
+.env
+.env.*
+
+# Ignore specific file types:
+*.min.js
+*.bundle.js
+
+# Ignore public/static assets:
+public/
+static/
+
+# Optional: ignore Prettier config itself
+.prettierrc
+.prettierignore
