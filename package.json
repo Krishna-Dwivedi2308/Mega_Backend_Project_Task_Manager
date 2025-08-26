@@ -4,14 +4,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -26,5 +27,6 @@
   },
   "devDependencies": {
     "prettier": "^3.5.3"
-  }
+  },
+  "description": ""
 }
