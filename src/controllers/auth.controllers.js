@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { emailverificationMailGenContent, sendMail } from '../utils/mailgen.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { uploadonCloudinary } from '../utils/cloudinary.js';
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 const generateAccessAndRefreshToken = async (userID) => {
@@ -218,9 +219,43 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, 'Refresh Token not received');
+  }
+  try {
+    const decodedRefreshToken = await jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
 
-  //validation
+    const foundUser = await User.findById(decodedRefreshToken?._id);
+
+    if (!foundUser) {
+      throw new ApiError(401, 'Invalid Refresh Token ');
+    }
+    // now that we have received the user and we also have a user based on the token,let us compare first if both of the refresh tokens match
+
+    if (!(incomingRefreshToken == foundUser.refreshToken)) {
+      throw new ApiError(401, 'Refresh Token is expired or used');
+    }
+
+    //now when both of them match ?=>generate new access and refresh token
+    const accessToken = foundUser.generateAccessToken();
+    //store this in cookies
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    return res
+      .status(200)
+      .cookie('accessToken', accessToken, options)
+      .json(new ApiResponse(200, { accessToken }, 'Access Token Refreshed'));
+  } catch (error) {
+    throw new ApiError(401, error?.message || 'Invalid Refresh Token');
+  }
 });
 
 const forgotPasswordRequest = asyncHandler(async (req, res) => {
@@ -241,4 +276,4 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   //validation
 });
 
-export { registerUser, loginUser, logoutUser };
+export { registerUser, loginUser, logoutUser, refreshAccessToken };

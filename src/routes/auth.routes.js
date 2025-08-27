@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   loginUser,
   logoutUser,
+  refreshAccessToken,
   registerUser,
 } from '../controllers/auth.controllers.js';
 import {
@@ -25,5 +26,6 @@ router.route('/login').post(userLoginValidator(), validate, loginUser);
 
 //secured routes
 router.route('/logout').post(verifyJWT, logoutUser);
+router.route('/refreshAccessToken').post(refreshAccessToken);
 // router.route('/verify-email/:token/:email').post(verifyUser);
 export default router;
