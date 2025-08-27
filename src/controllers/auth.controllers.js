@@ -155,7 +155,7 @@ const loginUser = asyncHandler(async (req, res) => {
     founduser._id
   );
 
-  const loggedInUser = User.findById(founduser._id);
+  const loggedInUser = await User.findById(founduser._id);
   const userResponse = {
     _id: loggedInUser._id,
     email: loggedInUser.email,
@@ -176,7 +176,26 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
+  //0. get user id from cookies
+  //1. remove access token and refresh token from cookies
+  //2.remove reresh token from database
+  //3. send success response
+  await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { refreshToken: undefined } },
+    { new: true }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  res
+    .status(200)
+    .clearCookie('accessToken', options)
+    .clearCookie('refreshToken', options)
+    .json(new ApiResponse(200, {}, 'user logged out successfully'));
 
   //validation
 });
@@ -222,4 +241,4 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   //validation
 });
 
-export { registerUser, loginUser };
+export { registerUser, loginUser, logoutUser };
