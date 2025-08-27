@@ -144,9 +144,9 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, 'User not found');
   }
 
-  // if (!founduser.isEmailVerified) {
-  //   throw new ApiError(401, 'User email is not verified');
-  // }
+  if (!founduser.isEmailVerified) {
+    throw new ApiError(401, 'User email is not verified');
+  }
 
   const isPasswordOK = await founduser.isPasswordCorrect(password);
   if (!isPasswordOK) {
