@@ -6,6 +6,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { uploadonCloudinary } from '../utils/cloudinary.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const generateAccessAndRefreshToken = async (userID) => {
   try {
@@ -71,7 +72,7 @@ const registerUser = asyncHandler(async (req, res) => {
   createdUser.emailverificationExpiry = tokenExpiry;
 
   //  4. Create verification link (Template literal fix!)
-  const verification_link = `${process.env.BASE_URL}/api/v1/auth/verify-email/token=${unHashedToken}/{email}`;
+  const verification_link = `${process.env.BASE_URL}/api/v1/auth/verify-email?token=${unHashedToken}&email=${email}`;
   // console.log('Verification link:', verification_link);
 
   //  5. Send verification email
@@ -202,10 +203,36 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const verifyEmail = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const { token, email } = req.query;
 
-  //validation
+  if (!token || !email) {
+    throw new ApiError(400, 'Invalid verification link');
+  }
+
+  // hash the incoming token
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  // find user with matching email and token
+  const user = await User.findOne({
+    email,
+    emailverificationToken: hashedToken,
+    emailverificationExpiry: { $gt: Date.now() }, // not expired
+  });
+
+  if (!user) {
+    throw new ApiError(400, 'Token is invalid or expired');
+  }
+
+  // mark as verified
+  user.isEmailVerified = true;
+  user.emailverificationToken = undefined;
+  user.emailverificationExpiry = undefined;
+  await user.save();
+
+  res.status(200).json(new ApiResponse(200, {}, 'Email verified successfully'));
 });
+
+//validation
 
 const resendEmailVerification = asyncHandler(async (req, res) => {
   const { email, username, password, role } = req.body;
@@ -276,4 +303,4 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   //validation
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+export { registerUser, loginUser, logoutUser, refreshAccessToken, verifyEmail };
