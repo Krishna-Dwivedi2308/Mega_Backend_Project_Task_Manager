@@ -182,7 +182,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   //3. send success response
   await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { refreshToken: undefined } },
+    { $set: { refreshToken: null } }, //mongoDB does not store 'undefined' so if we set it to 'null' , only then it will work
     { new: true }
   );
 
