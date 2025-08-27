@@ -28,19 +28,15 @@ const userRegistrationValiadator = () => {
 
 const userLoginValidator = () => {
   return [
-  body("email")
-    .optional()
-    .isEmail()
-    .withMessage("Must be a valid email"),
-  body("username")
-    .optional()
-    .isLength({ min: 3 })
-    .withMessage("Username must be at least 3 chars"),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 chars"),
-]};
-
-
+    body('email').optional().isEmail().withMessage('Must be a valid email'),
+    body('username')
+      .optional()
+      .isLength({ min: 3 })
+      .withMessage('Username must be at least 3 chars'),
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 chars'),
+  ];
+};
 
 export { userRegistrationValiadator, userLoginValidator };
