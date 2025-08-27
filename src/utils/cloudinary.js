@@ -29,9 +29,10 @@ export const uploadonCloudinary = async (imagePath) => {
     // Upload the image
     const result = await cloudinary.uploader.upload(imagePath, options);
     console.log(result);
+    await fs.unlinkSync(imagePath); // remove the file from server when uploaded successfuly on cloudinary
     return result.url;
   } catch (error) {
-    fs.unlinkSync(imagePath); //delete the file on server in case of error
+    await fs.unlinkSync(imagePath); //delete the file on server in case of error
     console.error(error);
     return error;
   }

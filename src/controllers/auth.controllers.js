@@ -4,14 +4,31 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { emailverificationMailGenContent, sendMail } from '../utils/mailgen.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { uploadonCloudinary } from '../utils/cloudinary.js';
+import bcrypt from 'bcryptjs';
+
+
+const generateAccessAndRefreshToken=async(userID)=>{
+  try {
+    const user=await User.findById(userID)
+    const accessToken=user.generateAccessToken()
+    const RefreshToken=user.generateRefreshToken()
+    user.refreshToken=RefreshToken
+    await user.save({validateBeforeSave:false})
+    return {accessToken,RefreshToken}
+  } catch (error) {
+    throw new ApiError(500,'Something went Wrong while generating access and refresh token ')
+  }
+}
+
+
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, username, password, fullname } = req.body;
+  const { email, username, password, fullname} = req.body;
 
   const existingUser = await User.findOne({
     $or: [{ email }, { username }],
   });
-  console.log('existingUser = \n', existingUser);
+  // console.log('existingUser = \n', existingUser);
 
   if (existingUser) {
     throw new ApiError(409, 'User with this email or username already exists');
@@ -19,13 +36,13 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //now we also store the path of the uploaded avatar in the
   const avatarLocalPath = req.file?.path;
-  console.log('req.file = \n', req.file);
+  // console.log('req.file = \n', req.file);
   if (!avatarLocalPath) {
     throw new ApiError(400, 'avatar not uploaded');
   }
 
   const avatar_url = await uploadonCloudinary(avatarLocalPath);
-  console.log(avatar_url);
+  // console.log(avatar_url);
 
   if (!avatar_url) {
     throw new ApiError(400, 'avatar not uploaded');
@@ -41,7 +58,7 @@ const registerUser = asyncHandler(async (req, res) => {
     fullname,
     avatar: avatar_url,
   });
-  console.log(createdUser);
+  // console.log(createdUser);
 
   if (!createdUser) {
     throw new ApiError(500, 'Error creating user');
@@ -54,7 +71,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //  4. Create verification link (Template literal fix!)
   const verification_link = `${process.env.BASE_URL}/api/v1/auth/verify-email/token=${unHashedToken}/{email}`;
-  console.log('Verification link:', verification_link);
+  // console.log('Verification link:', verification_link);
 
   //  5. Send verification email
   await sendMail({
@@ -92,23 +109,77 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 //controller-2- now verify user
-const verifyUser = asyncHandler(async (req, res) => {
-  //get token from url
-  const { token, email } = req.params;
-  //valiate if token received
-  if (!token) {
-    throw new ApiError(498, 'token not received - invalid url');
-  }
-});
+// const verifyUser = asyncHandler(async (req, res) => {
+//   //get token from url
+//   const { token, email } = req.params;
+//   //valiate if token received
+//   if (!token) {
+//     throw new ApiError(498, 'token not received - invalid url');
+//   }
+// });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const { email, username, password } = req.body;
+  // steps in login algo 
+  // 1. find user by email or username
+  // 2. check if user exists
+  // 3. check if user role is correct
+  // 4. check if email is verified
+  // 5. check if password is correct
+  // 6. generate access token and refresh token
+  // 7. send access token and refresh token in response.cookies
+  // 8. send success response with user details
 
-  //validation
+  if(!email && !username){
+    throw new ApiError(400, 'email or username is required');
+  }
+
+  const founduser = await User.findOne({
+    $or: [{ email }, { username }],
+  }); 
+
+  if (!founduser) {
+    throw new ApiError(401, 'User not found');
+  }
+
+  // if (!founduser.isEmailVerified) {
+  //   throw new ApiError(401, 'User email is not verified');
+  // }
+
+  const isPasswordOK=await founduser.isPasswordCorrect(password)
+  if(!isPasswordOK){
+    throw new ApiError(401,'Password incorrect')
+  }
+
+  const {accessToken,RefreshToken}= await generateAccessAndRefreshToken(founduser._id)
+
+const loggedInUser=User.findById(founduser._id)
+const userResponse={
+_id:loggedInUser._id,
+email:loggedInUser.email,
+username:loggedInUser.username,
+fullname:loggedInUser.fullname,
+}
+
+const options={
+  httpOnly:true,
+  secure:true
+}
+
+return res.status(200)
+.cookie('accessToken',accessToken,options)
+.cookie('refreshToken',RefreshToken,options)
+.json(new ApiResponse(200,userResponse,'user logged in successfully'))
+
 });
 
+
+
+
+
+
 const logoutUser = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const { email, username, password } = req.body;
 
   //validation
 });
@@ -154,4 +225,4 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   //validation
 });
 
-export { registerUser, loginUser, verifyUser };
+export { registerUser, loginUser };

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { registerUser, verifyUser } from '../controllers/auth.controllers.js';
-import { userRegistrationValiadator } from '../validators/index.js';
+import { loginUser, registerUser } from '../controllers/auth.controllers.js';
+import { userRegistrationValiadator,userLoginValidator } from '../validators/index.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { upload } from '../middlewares/multer.middleware.js';
 
@@ -13,5 +13,12 @@ router
     validate,
     registerUser
   );
-router.route('/verify-email/:token/:email').post(verifyUser);
+router
+  .route('/login')
+  .post(
+    userLoginValidator(),
+    validate,
+    loginUser
+  );
+// router.route('/verify-email/:token/:email').post(verifyUser);
 export default router;
