@@ -4,11 +4,13 @@ import {
   logoutUser,
   refreshAccessToken,
   registerUser,
+  resendEmailVerification,
   verifyEmail,
 } from '../controllers/auth.controllers.js';
 import {
   userRegistrationValiadator,
   userLoginValidator,
+  resendEmailVerificationValidator,
 } from '../validators/index.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { upload } from '../middlewares/multer.middleware.js';
@@ -29,5 +31,8 @@ router.route('/login').post(userLoginValidator(), validate, loginUser);
 router.route('/logout').post(verifyJWT, logoutUser);
 router.route('/refreshAccessToken').post(refreshAccessToken);
 router.route('/verify-email').get(verifyEmail);
+router
+  .route('/resend-verification-email')
+  .post(resendEmailVerificationValidator(), validate, resendEmailVerification);
 // router.route('/verify-email/:token/:email').post(verifyUser);
 export default router;

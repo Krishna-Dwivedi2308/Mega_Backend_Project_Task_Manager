@@ -232,13 +232,59 @@ const verifyEmail = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, {}, 'Email verified successfully'));
 });
 
-//validation
-
 const resendEmailVerification = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  //resend the verification email in case the user missed the token expiry duration
+  const { email, password } = req.body;
 
-  //validation
+  if (!email) {
+    throw new ApiError(400, 'email is required');
+  }
+
+  const founduser = await User.findOne({ email });
+
+  if (!founduser) {
+    throw new ApiError(401, 'User not found');
+  }
+
+  if (founduser.isEmailVerified) {
+    throw new ApiError(400, 'User email is already verified');
+  }
+
+  const isPasswordOK = await founduser.isPasswordCorrect(password);
+  if (!isPasswordOK) {
+    throw new ApiError(401, 'Password incorrect');
+  }
+
+  // send verification link
+
+  //  3. Generate email verification token
+  const { hashedToken, unHashedToken, tokenExpiry } =
+    founduser.generateTemporaryToken();
+  founduser.emailverificationToken = hashedToken;
+  founduser.emailverificationExpiry = tokenExpiry;
+
+  //  4. Create verification link (Template literal fix!)
+  const verification_link = `${process.env.BASE_URL}/api/v1/auth/verify-email?token=${unHashedToken}&email=${email}`;
+  // console.log('Verification link:', verification_link);
+  const username = founduser.username;
+  //  5. Send verification email
+  await sendMail({
+    email,
+    username,
+    mailGenContent: emailverificationMailGenContent(
+      username,
+      verification_link
+    ),
+  });
+
+  // 6. Save updated user with token info
+  await founduser.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { username }, 'email sent successfully'));
 });
+
 const resetForgottenPassword = asyncHandler(async (req, res) => {
   const { email, username, password, role } = req.body;
 
@@ -303,4 +349,11 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   //validation
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken, verifyEmail };
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  verifyEmail,
+  resendEmailVerification,
+};
