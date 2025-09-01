@@ -16,12 +16,21 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       token,
       process.env.ACCESS_TOKEN_SECRET
     );
-    console.log('decodedToken=\n', decodedToken);
 
     const foundUser = await User.findById(decodedToken?._id);
+
     if (!foundUser) {
       //todo:discuss about frontend
       throw new ApiError(401, 'Invalid Token');
+    }
+    // also check if the token was issued after the password was changed
+    if (foundUser.passwordChangedAT) {
+      if (decodedToken.iat * 1000 < foundUser.passwordChangedAT.getTime()) {
+        throw new ApiError(
+          401,
+          'Password changed recently. Please log in again.'
+        );
+      }
     }
     //this way we have added a property to our request called user that has the user details
     req.user = foundUser;

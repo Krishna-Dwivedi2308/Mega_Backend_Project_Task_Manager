@@ -85,10 +85,28 @@ const resetPasswordValidator = () => {
       .withMessage('Password must be at least 6 characters long'),
   ];
 };
+const changeCurrentPasswordValidator = () => {
+  return [
+    body('oldPassword')
+      .trim()
+      .notEmpty()
+      .withMessage('oldPassword is required')
+      .isLength({ min: 6 })
+      .withMessage('oldPassword must be at least 6 characters'),
+
+    body('newPassword')
+      .trim()
+      .notEmpty()
+      .withMessage('newPassword is required')
+      .isLength({ min: 6 })
+      .withMessage('newPassword must be at least 6 characters'),
+  ];
+};
 export {
   userRegistrationValiadator,
   userLoginValidator,
   resendEmailVerificationValidator,
   resetPasswordValidator,
   forgotPasswordRequestValidator,
+  changeCurrentPasswordValidator,
 };

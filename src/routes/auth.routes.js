@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import {
+  changeCurrentPassword,
   forgotPasswordRequest,
+  getCurrentUser,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -15,6 +17,7 @@ import {
   resendEmailVerificationValidator,
   resetPasswordValidator,
   forgotPasswordRequestValidator,
+  changeCurrentPasswordValidator,
 } from '../validators/index.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { upload } from '../middlewares/multer.middleware.js';
@@ -44,5 +47,14 @@ router
 router
   .route('/reset-password')
   .post(resetPasswordValidator(), validate, resetForgottenPassword);
+router
+  .route('/changeCurrentPassword')
+  .post(
+    verifyJWT,
+    changeCurrentPasswordValidator(),
+    validate,
+    changeCurrentPassword
+  );
+router.route('/getCurrentUser').get(verifyJWT, getCurrentUser);
 // router.route('/verify-email/:token/:email').post(verifyUser);
 export default router;

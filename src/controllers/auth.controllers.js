@@ -411,15 +411,58 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(400, 'oldPassword and newPassword are required');
+  }
+  const founduser = req.user;
+  const isPasswordCorrect = await founduser.isPasswordCorrect(oldPassword);
+  // a;though this will never run because the middleware passed the user , if not been found it would have thrown error .
+  if (!founduser) {
+    throw new ApiError(
+      401,
+      'Login session invalid or expired. Kindly Login again'
+    );
+  }
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, 'Existing Password does not match');
+  }
+  founduser.password = newPassword;
+  founduser.refreshToken = null;
+  const response = {
+    email: founduser.email,
+    username: founduser.username,
+  };
+  await founduser.save();
 
-  //validation
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  // also remove the cookies from user device so that they can not use the old token
+  res
+    .status(200)
+    // .clearCookie('accessToken', options)
+    // .clearCookie('refreshToken', options)
+    .json(
+      new ApiResponse(
+        200,
+        response,
+        'Password Changed Successfully. PLease login again '
+      )
+    );
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const user = req.user;
+  const response = {
+    email: user.email,
+    username: user.username,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
 
-  //validation
+  return res.status(200).json(new ApiResponse(200, response, 'Success'));
 });
 
 export {
@@ -431,4 +474,6 @@ export {
   resendEmailVerification,
   forgotPasswordRequest,
   resetForgottenPassword,
+  changeCurrentPassword,
+  getCurrentUser,
 };

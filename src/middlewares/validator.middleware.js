@@ -4,8 +4,6 @@ import { ApiError } from '../utils/ApiError.js';
 //just a wrapper like asyncHandler to extract the data from our express validator and pass it on to error class .
 
 export const validate = (req, res, next) => {
-  console.log('body for validation', req.body);
-
   const errors = validationResult(req); //errors extracted in array form because remember that array was returned from express validator
 
   //if no errors

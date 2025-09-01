@@ -2,6 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { type } from 'os';
 const userSchema = new Schema(
   {
     avatar: {
@@ -31,6 +32,9 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: true,
+    },
+    passwordChangedAT: {
+      type: Date,
     },
     isEmailVerified: {
       type: Boolean,
@@ -62,6 +66,7 @@ userSchema.pre('save', async function (next) {
     return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
+  this.passwordChangedAT = Date.now();
   next();
 });
 
