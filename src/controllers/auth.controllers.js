@@ -114,16 +114,6 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-//controller-2- now verify user
-// const verifyUser = asyncHandler(async (req, res) => {
-//   //get token from url
-//   const { token, email } = req.params;
-//   //valiate if token received
-//   if (!token) {
-//     throw new ApiError(498, 'token not received - invalid url');
-//   }
-// });
-
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
   // steps in login algo

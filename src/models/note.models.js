@@ -3,8 +3,8 @@ import mongoose, { Schema } from 'mongoose';
 const noteSchema = new Schema(
   {
     project: {
-      type: Schema.Types.ObjectId, //iska matlab hai id lelo
-      ref: 'Project', //kiska id lena hai ? => project ka jis name se mongo db me save hua hai
+      type: Schema.Types.ObjectId, //means get the id
+      ref: 'Project', //says whose id I need - Project
       required: true,
     },
     createdBy: {

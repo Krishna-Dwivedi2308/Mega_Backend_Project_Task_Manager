@@ -102,6 +102,19 @@ const changeCurrentPasswordValidator = () => {
       .withMessage('newPassword must be at least 6 characters'),
   ];
 };
+
+const validateNoteContent = () => {
+  return [
+    body('content')
+      .trim()
+      .notEmpty()
+      .withMessage('Note content is required')
+      .isLength({ min: 3 })
+      .withMessage('Note content must be at least 3 characters long')
+      .isLength({ max: 50 })
+      .withMessage('Note content must not exceed 50 characters'),
+  ];
+};
 export {
   userRegistrationValiadator,
   userLoginValidator,
@@ -109,4 +122,5 @@ export {
   resetPasswordValidator,
   forgotPasswordRequestValidator,
   changeCurrentPasswordValidator,
+  validateNoteContent,
 };
