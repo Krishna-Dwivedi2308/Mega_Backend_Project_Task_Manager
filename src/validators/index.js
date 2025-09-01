@@ -50,8 +50,45 @@ const resendEmailVerificationValidator = () => {
     body('password').trim().notEmpty().withMessage('password is required'),
   ];
 };
+const forgotPasswordRequestValidator = () => {
+  return [
+    body('email')
+      .trim()
+      .notEmpty()
+      .withMessage('email is required')
+      .isEmail()
+      .withMessage('email is invalid '),
+  ];
+};
+
+const resetPasswordValidator = () => {
+  return [
+    body('email')
+      .trim()
+      .notEmpty()
+      .withMessage('Email is required')
+      .isEmail()
+      .withMessage('Invalid email format'),
+
+    body('token')
+      .trim()
+      .notEmpty()
+      .withMessage('Token is required')
+      .isLength({ min: 10 })
+      .withMessage('Token looks too short'),
+
+    body('password')
+      .trim()
+      .notEmpty()
+      .withMessage('Password is required')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters long'),
+  ];
+};
 export {
   userRegistrationValiadator,
   userLoginValidator,
   resendEmailVerificationValidator,
+  resetPasswordValidator,
+  forgotPasswordRequestValidator,
 };

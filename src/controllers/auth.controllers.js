@@ -1,7 +1,11 @@
 import { User } from '../models/user.models.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { emailverificationMailGenContent, sendMail } from '../utils/mailgen.js';
+import {
+  emailverificationMailGenContent,
+  forgotPasswordMailGenContent,
+  sendMail,
+} from '../utils/mailgen.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { uploadonCloudinary } from '../utils/cloudinary.js';
 import jwt from 'jsonwebtoken';
@@ -285,10 +289,85 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { username }, 'email sent successfully'));
 });
 
-const resetForgottenPassword = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+const forgotPasswordRequest = asyncHandler(async (req, res) => {
+  const { email } = req.body;
 
-  //validation
+  if (!email) {
+    throw new ApiError(400, 'email is required');
+  }
+
+  const founduser = await User.findOne({ email });
+  if (!founduser) {
+    throw new ApiError(401, 'cannot find user');
+  }
+  const { hashedToken, unHashedToken, tokenExpiry } =
+    founduser.generateTemporaryToken();
+  //send unhashed token to email
+  // store hashed token to db
+  // store token expiry timestamp to db
+  // success message - reset email sent
+  const verification_link = `${process.env.BASE_URL}/api/v1/auth/reset-password?token=${unHashedToken}&email=${email}`;
+  const username = founduser.username;
+  //  5. Send verification email
+  await sendMail({
+    email,
+    username,
+    mailGenContent: forgotPasswordMailGenContent(username, verification_link),
+  });
+
+  founduser.forgotPasswordToken = hashedToken;
+  founduser.forgotPasswordExpiry = tokenExpiry;
+  await founduser.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { email: founduser.email },
+        `Email sent to the email address: ${founduser.email}`
+      )
+    );
+});
+const resetForgottenPassword = asyncHandler(async (req, res) => {
+  // get the token and email form query params
+  //check the email in db
+  // match the corresponding token after hashing and its expiry
+  //  get the new password from user
+  // save the data in DB .
+  // return success response
+  const { token, email, password } = req.body;
+
+  if (!email || !token || !password) {
+    throw new ApiError(400, 'email,token and password are required');
+  }
+  const founduser = await User.findOne({ email });
+  if (!founduser) {
+    throw new ApiError(401, 'user not found');
+  }
+  // hash the incoming token and compare with the stored token
+  const incomingTokenHashed = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  if (
+    founduser.forgotPasswordToken == incomingTokenHashed &&
+    founduser.forgotPasswordExpiry > Date.now()
+  ) {
+    founduser.password = password;
+  } else {
+    throw new ApiError(401, 'Link invalid or Expired');
+  }
+  founduser.forgotPasswordExpiry = undefined;
+  founduser.forgotPasswordToken = undefined;
+  await founduser.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { message: 'Password reset Successful' }, 'Success')
+    );
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -331,12 +410,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-const forgotPasswordRequest = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
-
-  //validation
-});
-
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { email, username, password, role } = req.body;
 
@@ -356,4 +429,6 @@ export {
   refreshAccessToken,
   verifyEmail,
   resendEmailVerification,
+  forgotPasswordRequest,
+  resetForgottenPassword,
 };
