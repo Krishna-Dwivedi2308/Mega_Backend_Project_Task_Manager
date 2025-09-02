@@ -11,6 +11,11 @@ const projectSchema = new Schema(
     description: {
       type: String,
     },
+    organization: {
+      type: Schema.Types.ObjectId, //means get the id
+      ref: 'Organization', //says whose id I need - organization
+      required: true,
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',

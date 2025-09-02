@@ -1,6 +1,6 @@
 // boilderplate code
 import { ApiError } from '../utils/ApiError.js';
-import { Project, Project } from '../models/project.models.js';
+import { Project } from '../models/project.models.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import mongoose from 'mongoose';
 import { asyncHandler } from '../utils/asyncHandler.js';

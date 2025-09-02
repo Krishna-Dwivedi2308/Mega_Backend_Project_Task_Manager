@@ -1,6 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.routes.js';
+import orgRouter from './routes/organization.routes.js';
 import healthcheckRouter from './routes/healthcheck.routes.js';
 
 const app = express();
@@ -15,4 +16,5 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/healthcheck', healthcheckRouter);
 app.use('/api/v1/user', authRouter);
+app.use('/api/v1/organization', orgRouter);
 export default app;

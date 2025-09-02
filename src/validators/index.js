@@ -115,6 +115,32 @@ const validateNoteContent = () => {
       .withMessage('Note content must not exceed 50 characters'),
   ];
 };
+const validateCreateOrgContent = () => {
+  return [
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Name is required')
+      .isLength({ min: 3 })
+      .withMessage('Name must be at least 3 characters long')
+      .isLength({ max: 30 })
+      .withMessage('Name must not exceed 30 characters'),
+  ];
+};
+
+const validateUpdateOrganization = () => {
+  return [
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Organization name is required')
+      .isLength({ min: 3, max: 30 })
+      .withMessage('Organization name must be between 3 and 50 characters'),
+
+    body('organizationId').notEmpty().withMessage('OrganizationId is required'),
+  ];
+};
+
 export {
   userRegistrationValiadator,
   userLoginValidator,
@@ -123,4 +149,6 @@ export {
   forgotPasswordRequestValidator,
   changeCurrentPasswordValidator,
   validateNoteContent,
+  validateCreateOrgContent,
+  validateUpdateOrganization,
 };
