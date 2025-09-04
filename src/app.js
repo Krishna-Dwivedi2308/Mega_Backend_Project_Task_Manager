@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.routes.js';
 import orgRouter from './routes/organization.routes.js';
 import healthcheckRouter from './routes/healthcheck.routes.js';
+import projectRouter from './routes/project.routes.js';
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -17,4 +18,5 @@ app.get('/', (req, res) => {
 app.use('/api/v1/healthcheck', healthcheckRouter);
 app.use('/api/v1/user', authRouter);
 app.use('/api/v1/organization', orgRouter);
+app.use('/api/v1/project', projectRouter);
 export default app;

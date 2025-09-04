@@ -50,8 +50,8 @@ export const validateProjectPermission = (role = []) =>
     }
     // find this user in the list of project members of the given project
     const projectMember = await ProjectMember.findOne({
-      project: mongoose.Types.ObjectId(projectId),
-      user: mongoose.Types.ObjectId(req.user._id),
+      project: new mongoose.Types.ObjectId(projectId),
+      user: new mongoose.Types.ObjectId(req.user._id),
     });
     // now we have found the logged in user in the list of Project Members of the specified project
     // and therefore we also have the role assigned to them.
@@ -70,4 +70,5 @@ export const validateProjectPermission = (role = []) =>
         'You do not have permission to perform this action'
       );
     }
+    next();
   });

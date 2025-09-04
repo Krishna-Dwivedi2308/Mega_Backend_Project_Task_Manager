@@ -1,6 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
-import { AvailableUserRoles, UserRolesEnum } from '../utils/constants.js';
-const projectmemberSchema = new Schema(
+projectmemberSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -23,8 +21,4 @@ const projectmemberSchema = new Schema(
     },
   },
   { timestamps: true }
-);
-export const ProjectMember = mongoose.model(
-  'ProjectMember',
-  projectmemberSchema
 );

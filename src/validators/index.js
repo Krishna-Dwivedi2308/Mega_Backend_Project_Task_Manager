@@ -1,4 +1,5 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
+import mongoose from 'mongoose';
 const userRegistrationValiadator = () => {
   return [
     body('email')
@@ -141,6 +142,40 @@ const validateUpdateOrganization = () => {
   ];
 };
 
+const validateProjectId = () => {
+  return [
+    param('projectId')
+      .notEmpty()
+      .withMessage('Project Id is required')
+      .custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value.trim())) {
+          throw new ApiError(400, 'Invalid Project Id format');
+        }
+        return true;
+      }),
+  ];
+};
+
+const validateUpdateProject = () => {
+  return [
+    body('name')
+      .optional()
+      .isString()
+      .withMessage('Project name must be a string')
+      .trim()
+      .isLength({ min: 3, max: 30 })
+      .withMessage('Project name must be between 3 and 30 characters'),
+
+    body('description')
+      .optional()
+      .isString()
+      .withMessage('Project description must be a string')
+      .trim()
+      .isLength({ min: 5, max: 500 })
+      .withMessage('Project description must be between 5 and 500 characters'),
+  ];
+};
+
 export {
   userRegistrationValiadator,
   userLoginValidator,
@@ -151,4 +186,6 @@ export {
   validateNoteContent,
   validateCreateOrgContent,
   validateUpdateOrganization,
+  validateProjectId,
+  validateUpdateProject,
 };

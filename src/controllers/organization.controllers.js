@@ -81,6 +81,12 @@ const getOrganizationById = asyncHandler(async (req, res) => {
     'admin',
     'fullname'
   );
+  if (foundOrganization.admin.toString() !== req.user._id.toString()) {
+    throw new ApiError(
+      403,
+      'You are not authorized to access this organization'
+    );
+  }
   const projects = await Project.find({
     organization: new mongoose.Types.ObjectId(orgId),
   });

@@ -85,3 +85,26 @@ export const forgotPasswordMailGenContent = (username, passwordResetUrl) => {
     },
   };
 };
+export const addProjectMemberMailGenContent = (
+  username,
+  passwordResetUrl,
+  projectName
+) => {
+  //this will generate the content for the mail based on the options we pass
+  return {
+    body: {
+      name: username,
+      intro: 'Add Project Member',
+      action: {
+        instructions: `You are being Requested to join the Project ${projectName}.Please click on the button to join`,
+        button: {
+          color: '#22BC66', // Optional action button color
+          text: 'Join Project',
+          link: passwordResetUrl,
+        },
+      },
+      outro:
+        "Need help, or have questions? Just reply to this email, we'd love to help.",
+    },
+  };
+};
