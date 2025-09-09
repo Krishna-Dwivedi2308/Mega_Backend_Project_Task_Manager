@@ -16,7 +16,7 @@ const subTaskSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    subtask: {
+    subtaskCreatedBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,

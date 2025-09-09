@@ -5,6 +5,9 @@ import mongoose from 'mongoose';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ProjectNote } from '../models/note.models.js';
 import { Organization } from '../models/organization.models.js';
+import { ProjectMember } from '../models/projectmember.models.js';
+import { Task } from '../models/task.models.js';
+import { SubTask } from '../models/subtask.models.js';
 
 const createOrganization = asyncHandler(async (req, res) => {
   const { name } = req.body;
@@ -53,7 +56,38 @@ const deleteOrganization = asyncHandler(async (req, res) => {
     );
   }
   const response = await foundOrganization?.populate('admin', 'fullname');
+
+  // delete all projects, notes, subtasks, tasks,project_members under this organization
+  // delete all project members
+  await ProjectMember.deleteMany({
+    organization: new mongoose.Types.ObjectId(organizationId),
+  });
+  // delete all project notes
+
+  const allProjects = await Project.find({
+    organization: new mongoose.Types.ObjectId(organizationId),
+  });
+  const projectIds = allProjects.map((project) => project._id);
+
+  await ProjectNote.deleteMany({ project: { $in: projectIds } });
+
+  // now delete all the project subtasks
+  const fetchAllTasks = await Task.find({ project: { $in: projectIds } });
+  const allTaskIds = fetchAllTasks.map((task) => task._id);
+  await SubTask.deleteMany({ task: { $in: allTaskIds } });
+
+  // delete all the tasks in that project
+  await Task.deleteMany({ project: { $in: projectIds } });
+
+  // now delete all projects also
+  await Project.deleteMany({
+    organization: new mongoose.Types.ObjectId(organizationId),
+  });
+
+  // the above code can also be wrii
+
   await foundOrganization.deleteOne();
+
   return res
     .status(200)
     .json(new ApiResponse(200, response, 'Organization Deleted'));

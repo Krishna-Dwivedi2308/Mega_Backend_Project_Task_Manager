@@ -9,6 +9,8 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { User } from '../models/user.models.js';
 import jwt from 'jsonwebtoken';
 import { addProjectMemberMailGenContent, sendMail } from '../utils/mailgen.js';
+import { Task } from '../models/task.models.js';
+import { SubTask } from '../models/subtask.models.js';
 import { ProjectNote } from '../models/note.models.js';
 
 const assignStatus = (role) => {
@@ -220,6 +222,16 @@ const deleteProject = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'You are not authorized to delete this project');
   }
   await foundProject.deleteOne();
+  // must delete all the tasks , subtasks , project members , project notes
+  // can be done by pre('deleteOne') hook also
+  const allTaskIds = (await Task.find({ project: projectId })).map(
+    (t) => t._id
+  );
+  await Task.deleteMany({ project: foundProject._id });
+  await SubTask.deleteMany({ task: { $in: { allTaskIds } } });
+  await ProjectMember.deleteMany({ project: foundProject._id });
+  await ProjectNote.deleteMany({ project: foundProject._id });
+  // now return success response
   return res
     .status(200)
     .json(new ApiResponse(200, foundProject, 'Project Deleted Successfully'));
@@ -238,7 +250,7 @@ const getProjectMembers = asyncHandler(async (req, res) => {
     project: new mongoose.Types.ObjectId(projectId),
   }).populate('user', 'fullname');
 
-  if (!projectMembers) {
+  if (projectMembers.length == 0) {
     throw new ApiError(404, 'No Project Members Found');
   }
 
