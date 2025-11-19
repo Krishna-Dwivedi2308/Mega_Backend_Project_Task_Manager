@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.13",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
@@ -23,7 +24,8 @@
     "mongoose": "^8.14.0",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.10.1",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
     "prettier": "^3.5.3"

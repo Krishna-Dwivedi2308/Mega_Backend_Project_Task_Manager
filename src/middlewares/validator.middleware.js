@@ -1,9 +1,10 @@
 import { validationResult } from 'express-validator'; //given  by express by default
 import { ApiError } from '../utils/ApiError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 //just a wrapper like asyncHandler to extract the data from our express validator and pass it on to error class .
 
-export const validate = (req, res, next) => {
+export const validate = asyncHandler((req, res, next) => {
   const errors = validationResult(req); //errors extracted in array form because remember that array was returned from express validator
 
   //if no errors
@@ -20,5 +21,5 @@ export const validate = (req, res, next) => {
   );
   console.log(extractedError);
 
-  throw new ApiError(422, 'received data is not valid', extractedError); //data passed into our custom error class
-};
+  throw new ApiError(422, 'Received data is not valid', extractedError); //data passed into our custom error class
+});

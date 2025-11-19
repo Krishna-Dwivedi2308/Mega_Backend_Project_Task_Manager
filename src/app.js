@@ -5,8 +5,16 @@ import orgRouter from './routes/organization.routes.js';
 import healthcheckRouter from './routes/healthcheck.routes.js';
 import projectRouter from './routes/project.routes.js';
 import taskRouter from './routes/task.routes.js';
+// import cors
+import cors from 'cors';
 
 const app = express();
+const corsOptions = {
+  origin: 'http://localhost:5173', //  Replace with your FRONTEND's URL
+  credentials: true, // MUST be true to allow cookies to be sent/received
+};
+
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());

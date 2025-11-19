@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user.models.js';
 import mongoose from 'mongoose';
 import { ProjectMember } from '../models/projectmember.models.js';
+
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
     const token =
@@ -38,7 +39,60 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
     next();
   } catch (error) {
-    throw new ApiError(401, error?.message || 'unauthorized Request');
+    // cookie options (consistent name)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    // If the error is not token expiry, throw immediately
+    if (error.name !== 'TokenExpiredError') {
+      throw new ApiError(401, error.message || 'Unauthorized request.');
+    }
+
+    // Access token expired => use refresh token as backup (harmless fallback)
+    const incomingRefreshToken =
+      req.cookies?.refreshToken || req.body?.refreshToken;
+    if (!incomingRefreshToken) {
+      // Per requirement: if access token expired AND no refresh token => throw
+      throw new ApiError(
+        401,
+        'Access token expired and no refresh token provided.'
+      );
+    }
+
+    // Verify refresh token and ensure it matches stored value
+    try {
+      const decodedRefresh = jwt.verify(
+        incomingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+      const userId = decodedRefresh?._id;
+      if (!userId) throw new ApiError(401, 'Invalid refresh token payload.');
+
+      const foundUser = await User.findById(userId);
+      if (!foundUser)
+        throw new ApiError(401, 'Invalid refresh token: user not found.');
+
+      // Ensure incoming refresh token matches stored refreshToken (prevents revoked tokens)
+      if (foundUser.refreshToken !== incomingRefreshToken) {
+        throw new ApiError(401, 'Refresh token is expired or revoked.');
+      }
+
+      // Everything ok -> issue a new access token (keep same refresh token as requested)
+      const newAccessToken = foundUser.generateAccessToken();
+
+      // Set cookies (accessToken refreshed; re-set refreshToken to same value optionally)
+      res.cookie('accessToken', newAccessToken, cookieOptions);
+      // Re-setting refresh token cookie is optional; doing so keeps the same cookie attributes
+      res.cookie('refreshToken', incomingRefreshToken, cookieOptions);
+
+      // Attach user and continue to controller
+      req.user = foundUser;
+      return next();
+    } catch (refreshErr) {
+      throw new ApiError(401, refreshErr?.message || 'Invalid refresh token.');
+    }
   }
 });
 

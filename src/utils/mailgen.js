@@ -54,15 +54,15 @@ export const emailverificationMailGenContent = (username, verificationUrl) => {
       name: username,
       intro: 'welcome to our App!',
       action: {
-        instructions: 'To get started with our app, please click here:',
+        instructions: 'To get started Tandem, please click here:',
         button: {
           color: '#22BC66', // Optional action button color
-          text: 'Verify your email',
+          text: 'Verify Email',
           link: verificationUrl,
         },
       },
       outro:
-        "Need help, or have questions? Just reply to this email, we'd love to help.",
+        "This link is valid for 20 minutes. Need help, or have questions? Just reply to this email, we'd love to help.",
     },
   };
 };

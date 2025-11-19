@@ -76,7 +76,7 @@ const registerUser = asyncHandler(async (req, res) => {
   createdUser.emailverificationExpiry = tokenExpiry;
 
   //  4. Create verification link (Template literal fix!)
-  const verification_link = `${process.env.BASE_URL}/api/v1/auth/verify-email?token=${unHashedToken}&email=${email}`;
+  const verification_link = `${process.env.FRONTEND_BASE_URL}/api/v1/auth/verify-email?token=${unHashedToken}&email=${email}`;
   // console.log('Verification link:', verification_link);
 
   //  5. Send verification email
@@ -161,7 +161,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: true, //for development
   };
 
   return res
@@ -258,7 +258,7 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
   founduser.emailverificationExpiry = tokenExpiry;
 
   //  4. Create verification link (Template literal fix!)
-  const verification_link = `${process.env.BASE_URL}/api/v1/auth/verify-email?token=${unHashedToken}&email=${email}`;
+  const verification_link = `${process.env.FRONTEND_BASE_URL}/api/v1/auth/verify-email?token=${unHashedToken}&email=${email}`;
   // console.log('Verification link:', verification_link);
   const username = founduser.username;
   //  5. Send verification email
@@ -296,7 +296,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   // store hashed token to db
   // store token expiry timestamp to db
   // success message - reset email sent
-  const verification_link = `${process.env.BASE_URL}/api/v1/auth/reset-password?token=${unHashedToken}&email=${email}`;
+  const verification_link = `${process.env.FRONTEND_BASE_URL}/api/v1/auth/reset-password?token=${unHashedToken}&email=${email}`;
   const username = founduser.username;
   //  5. Send verification email
   await sendMail({
@@ -327,6 +327,7 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
   // save the data in DB .
   // return success response
   const { token, email, password } = req.body;
+  // console.log(token,email,password);
 
   if (!email || !token || !password) {
     throw new ApiError(400, 'email,token and password are required');
@@ -432,8 +433,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   // also remove the cookies from user device so that they can not use the old token
   res
     .status(200)
-    // .clearCookie('accessToken', options)
-    // .clearCookie('refreshToken', options)
+    .clearCookie('accessToken', options)
+    .clearCookie('refreshToken', options)
     .json(
       new ApiResponse(
         200,
@@ -446,8 +447,11 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
   const user = req.user;
   const response = {
+    avatar: user.avatar,
     email: user.email,
     username: user.username,
+    fullname: user.fullname,
+    isEmailVerified: user.isEmailVerified,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
