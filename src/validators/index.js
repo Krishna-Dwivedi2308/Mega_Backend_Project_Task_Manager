@@ -1,5 +1,6 @@
 import { body, param } from 'express-validator';
 import mongoose from 'mongoose';
+import { ApiError } from '../utils/ApiError.js';
 const userRegistrationValiadator = () => {
   return [
     body('email')
@@ -144,15 +145,13 @@ const validateUpdateOrganization = () => {
 
 const validateProjectId = () => {
   return [
-    param('projectId')
-      .notEmpty()
-      .withMessage('Project Id is required')
-      .custom((value) => {
-        if (!mongoose.Types.ObjectId.isValid(value.trim())) {
-          throw new ApiError(400, 'Invalid Project Id format');
-        }
-        return true;
-      }),
+    param('projectId').notEmpty().withMessage('Project Id is required'),
+    // .custom((value) => {
+    //   if (!mongoose.Types.ObjectId.isValid(value.trim())) {
+    //     throw new ApiError(400, 'Invalid Project Id format');
+    //   }
+    //   return true;
+    // }),
   ];
 };
 

@@ -62,12 +62,18 @@ const getProjects = asyncHandler(async (req, res) => {
         _id: foundMember.project.createdBy,
         fullname: adminName.fullname,
       };
-
+      const orgName = await Organization.findById(
+        foundMember.project.organization
+      );
+      const organization = {
+        _id: foundMember.project.organization,
+        name: orgName.name,
+      };
       return {
         _id: foundMember.project._id,
         name: foundMember.project.name,
         description: foundMember.project.description,
-        organization: foundMember.project.organization.name, // already populated
+        organization: organization, // already populated
         admin: admin,
         createdAt: foundMember.project.createdAt,
         updatedAt: foundMember.project.updatedAt,
@@ -106,12 +112,28 @@ const getProjectById = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Invalid Project Id - May be corrupt');
   }
   const foundProject = await Project.findById(projectId);
+
+  const organization = await Organization.findById(
+    foundProject.organization
+  ).populate('admin', 'fullname');
+  // console.log(organization);
+
   if (!foundProject) {
     throw new ApiError(404, 'Project not Found');
   }
+
+  const response = {
+    _id: foundProject._id,
+    name: foundProject.name,
+    description: foundProject.description,
+    organization: organization.name,
+    admin: organization.admin.fullname,
+    createdAt: foundProject.createdAt,
+    updatedAt: foundProject.updatedAt,
+  };
   return res
     .status(200)
-    .json(new ApiResponse(200, foundProject, 'Project Fetched Successfully'));
+    .json(new ApiResponse(200, response, 'Project Fetched Successfully'));
 });
 
 const createProject = asyncHandler(async (req, res) => {

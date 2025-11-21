@@ -115,7 +115,8 @@ const getOrganizationById = asyncHandler(async (req, res) => {
     'admin',
     'fullname'
   );
-  if (foundOrganization.admin.toString() !== req.user._id.toString()) {
+
+  if (foundOrganization.admin._id.toString() !== req.user._id.toString()) {
     throw new ApiError(
       403,
       'You are not authorized to access this organization'

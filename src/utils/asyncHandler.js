@@ -5,7 +5,7 @@ function asyncHandler(requestHandler) {
     try {
       await requestHandler(req, res, next);
     } catch (err) {
-      // If it's one of your custom errors
+      // custom errors
       if (err instanceof ApiError) {
         return res.status(err.statusCode).json({
           success: false,
