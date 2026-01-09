@@ -53,7 +53,7 @@ router
     updateNote
   );
 router
-  .route('/deleteNote/:noteId')
+  .route('/deleteNote/:projectId/:noteId')
   .post(
     verifyJWT,
     validateProjectPermission([

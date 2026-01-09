@@ -96,7 +96,7 @@ export const addProjectMemberMailGenContent = (
       name: username,
       intro: 'Add Project Member',
       action: {
-        instructions: `You are being Requested to join the Project ${projectName}.Please click on the button to join`,
+        instructions: `You are being Requested to join the Project ${projectName}.Please click on the button to join.This link is valid for 30 minutes.`,
         button: {
           color: '#22BC66', // Optional action button color
           text: 'Join Project',

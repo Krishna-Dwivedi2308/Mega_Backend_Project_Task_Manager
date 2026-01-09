@@ -83,7 +83,10 @@ const getProjects = asyncHandler(async (req, res) => {
   );
   const validResponse = response.filter((response) => response !== null);
   if (validResponse.length == 0) {
-    throw new ApiError(501, 'Could not generate response');
+    throw new ApiError(
+      501,
+      'Could not generate data. There may  not be any projects. Please create one or contact admin .'
+    );
   }
   return res
     .status(200)
@@ -213,8 +216,8 @@ const updateProject = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'No such Project Found');
   }
 
-  if (name) foundProject.name = name;
-  if (description) foundProject.description = description;
+  if (name) foundProject.name = name.trim();
+  if (description) foundProject.description = description.trim();
   await foundProject.save();
   return res
     .status(200)
@@ -250,7 +253,7 @@ const deleteProject = asyncHandler(async (req, res) => {
     (t) => t._id
   );
   await Task.deleteMany({ project: foundProject._id });
-  await SubTask.deleteMany({ task: { $in: { allTaskIds } } });
+  await SubTask.deleteMany({ task: { $in: allTaskIds } });
   await ProjectMember.deleteMany({ project: foundProject._id });
   await ProjectNote.deleteMany({ project: foundProject._id });
   // now return success response
@@ -270,7 +273,7 @@ const getProjectMembers = asyncHandler(async (req, res) => {
   }
   const projectMembers = await ProjectMember.find({
     project: new mongoose.Types.ObjectId(projectId),
-  }).populate('user', 'fullname');
+  }).populate('user', 'fullname avatar');
 
   if (projectMembers.length == 0) {
     throw new ApiError(404, 'No Project Members Found');
@@ -314,7 +317,7 @@ const addMemberRequest = asyncHandler(async (req, res) => {
   if (!userToBeAdded) {
     throw new ApiError(400, 'Given user not found');
   }
-
+  // only admin can add admin
   if (role === UserRolesEnum.ADMIN) {
     if (!(req.user?.role === UserRolesEnum.ADMIN)) {
       throw new ApiError(401, 'You cannot make someone an admin');
@@ -330,9 +333,9 @@ const addMemberRequest = asyncHandler(async (req, res) => {
       role: role,
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+    { expiresIn: process.env.INVITE_TOKEN_EXPIRY }
   );
-  console.log(generateAddMemberRequestToken);
+  // console.log(generateAddMemberRequestToken);
 
   // jwt token generated , now send this to the user in email
   // Mailing utility
@@ -363,6 +366,7 @@ const addMemberRequest = asyncHandler(async (req, res) => {
 
 const addMemberToProject = asyncHandler(async (req, res) => {
   const { token, email } = req.query;
+
   if (!token && !email) {
     throw new ApiError(400, 'Token and email is required');
   }
@@ -373,6 +377,18 @@ const addMemberToProject = asyncHandler(async (req, res) => {
     throw new ApiError(401, 'Token invalid or expired');
   }
 
+  if (!(req.user._id.toString() === decodedToken.user.toString())) {
+    throw new ApiError(400, 'You are not authorized to add this member');
+  }
+
+  const alreadyMember = await ProjectMember.findOne({
+    user: decodedToken.user,
+    project: decodedToken.project,
+  });
+
+  if (alreadyMember) {
+    throw new ApiError(400, 'User already a member of this project');
+  }
   const addedMemberToProject = await ProjectMember.create({
     user: new mongoose.Types.ObjectId(decodedToken.user),
     organization: new mongoose.Types.ObjectId(decodedToken.organization),
@@ -394,6 +410,8 @@ const addMemberToProject = asyncHandler(async (req, res) => {
 
 const deleteMember = asyncHandler(async (req, res) => {
   const { projectId, memberId } = req.params;
+  console.log(projectId, memberId);
+
   if (!projectId || !memberId) {
     throw new ApiError(400, 'Both memberid and project id are requied');
   }
