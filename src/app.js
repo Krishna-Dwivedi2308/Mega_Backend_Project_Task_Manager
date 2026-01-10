@@ -11,7 +11,7 @@ import cors from 'cors';
 
 const app = express();
 const corsOptions = {
-  origin: 'http://localhost:5173', //  Replace with your FRONTEND's URL
+  origin: 'https://tandem.builders', //  Replace with your FRONTEND's URL
   credentials: true, // MUST be true to allow cookies to be sent/received
 };
 
