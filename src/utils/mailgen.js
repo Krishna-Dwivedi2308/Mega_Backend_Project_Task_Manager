@@ -24,17 +24,34 @@ export const sendMail = async (options) => {
   });
 
   //nodemailer starts here
+  // const transporter = nodemailer.createTransport({
+  //   host: process.env.MAILTRAP_HOST,
+  //   port: Number(process.env.MAILTRAP_PORT),
+  //   secure: false,
+  //   auth: {
+  //     user: process.env.MAILTRAP_USER,
+  //     pass: process.env.MAILTRAP_PASSWORD,
+  //   },
+  //   connectionTimeout: 20000,
+  //   greetingTimeout: 20000,
+  //   socketTimeout: 20000,
+  // });
+
   const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_HOST,
-    port: Number(process.env.MAILTRAP_PORT),
-    secure: false,
+    host: process.env.MAILTRAP_HOST, // live.smtp.mailtrap.io
+    port: Number(process.env.MAILTRAP_PORT), // 587 (number!)
+    secure: false, // MUST be false for 587
     auth: {
       user: process.env.MAILTRAP_USER,
       pass: process.env.MAILTRAP_PASSWORD,
     },
-    connectionTimeout: 20000,
-    greetingTimeout: 20000,
-    socketTimeout: 20000,
+    requireTLS: true, // 🔑 important for Mailtrap prod
+    tls: {
+      rejectUnauthorized: true,
+    },
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
   });
 
   //now create mail as per nodemailer
