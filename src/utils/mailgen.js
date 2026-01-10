@@ -16,6 +16,12 @@ export const sendMail = async (options) => {
 
   // Generate the plaintext version of the e-mail (for clients that do not support HTML)
   var emailText = mailGenerator.generatePlaintext(options.mailGenContent);
+  console.log({
+    host: process.env.MAILTRAP_HOST,
+    port: process.env.MAILTRAP_PORT,
+    user: !!process.env.MAILTRAP_USER,
+    pass: !!process.env.MAILTRAP_PASSWORD,
+  });
 
   //nodemailer starts here
   const transporter = nodemailer.createTransport({
