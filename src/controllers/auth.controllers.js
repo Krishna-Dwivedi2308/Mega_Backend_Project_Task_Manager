@@ -186,6 +186,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
+    sameSite: 'none',
   };
 
   res
@@ -391,6 +392,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
+      sameSite: 'none',
     };
 
     return res
@@ -430,6 +432,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
+    sameSite: 'none',
   };
   // also remove the cookies from user device so that they can not use the old token
   res
