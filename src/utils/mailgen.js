@@ -31,7 +31,7 @@ export const sendMail = async (options) => {
       name: 'Task Manager',
     },
     to: [{ address: options.email }],
-    subject: options.subject,
+    subject: options.subject || 'Tandem Email',
     text: emailText,
     html: emailBody,
   };
