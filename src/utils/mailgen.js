@@ -1,73 +1,45 @@
 import Mailgen from 'mailgen';
 import nodemailer from 'nodemailer';
+import { MailtrapTransport } from 'mailtrap';
 
 export const sendMail = async (options) => {
   console.log(options);
 
-  //copied this from documentation directly
-  var mailGenerator = new Mailgen({
+  // Mailgen setup (UNCHANGED)
+  const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
       name: 'Task Manager',
-      link: 'https://mailgen.js/', //your company/app link here
+      link: 'https://mailgen.js/',
     },
   });
-  var emailBody = mailGenerator.generate(options.mailGenContent);
 
-  // Generate the plaintext version of the e-mail (for clients that do not support HTML)
-  var emailText = mailGenerator.generatePlaintext(options.mailGenContent);
-  console.log({
-    host: process.env.MAILTRAP_HOST,
-    port: process.env.MAILTRAP_PORT,
-    user: !!process.env.MAILTRAP_USER,
-    pass: !!process.env.MAILTRAP_PASSWORD,
-  });
+  const emailBody = mailGenerator.generate(options.mailGenContent);
+  const emailText = mailGenerator.generatePlaintext(options.mailGenContent);
 
-  //nodemailer starts here
-  // const transporter = nodemailer.createTransport({
-  //   host: process.env.MAILTRAP_HOST,
-  //   port: Number(process.env.MAILTRAP_PORT),
-  //   secure: false,
-  //   auth: {
-  //     user: process.env.MAILTRAP_USER,
-  //     pass: process.env.MAILTRAP_PASSWORD,
-  //   },
-  //   connectionTimeout: 20000,
-  //   greetingTimeout: 20000,
-  //   socketTimeout: 20000,
-  // });
+  // ✅ Mailtrap API transport (replaces SMTP)
+  const transporter = nodemailer.createTransport(
+    MailtrapTransport({
+      token: process.env.MAILTRAP_API_TOKEN,
+    })
+  );
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_HOST, // live.smtp.mailtrap.io
-    port: Number(process.env.MAILTRAP_PORT), // 587 (number!)
-    secure: false, // MUST be false for 587
-    auth: {
-      user: process.env.MAILTRAP_USER,
-      pass: process.env.MAILTRAP_PASSWORD,
-    },
-    requireTLS: true, // 🔑 important for Mailtrap prod
-    tls: {
-      rejectUnauthorized: true,
-    },
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
-  });
-
-  //now create mail as per nodemailer
+  // Mail object (UNCHANGED)
   const mail = {
-    from: process.env.MAIL_FROM_ADDRESS, // sender address
-    to: options.email, // list of receivers
-    subject: options.subject, // Subject line
-    text: emailText, // plain text body
-    html: emailBody, // html body
+    from: {
+      address: process.env.MAIL_FROM_ADDRESS,
+      name: 'Task Manager',
+    },
+    to: [{ address: options.email }],
+    subject: options.subject,
+    text: emailText,
+    html: emailBody,
   };
 
-  //pass it to sendMail function of transporter in nodemailer to be sent as mail
   try {
     await transporter.sendMail(mail);
   } catch (error) {
-    console.log('error sending mail', error);
+    console.error('error sending mail', error);
     throw error;
   }
 };
